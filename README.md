@@ -4,7 +4,7 @@ Claude Code sessions widget for Waybar. Shows a live count of running Claude
 Code CLI sessions; clicking opens a themed session picker to focus any session's
 terminal window.
 
-<img width="1571" height="894" alt="image" src="https://github.com/user-attachments/assets/52ebff7d-76a8-4b56-b7a8-d833f2153c95" />
+<img width="1440" height="793" alt="image" src="https://github.com/user-attachments/assets/ec81d4be-a0ad-4252-a160-15bd0d1a982a" />
 
 
 ## What it does
