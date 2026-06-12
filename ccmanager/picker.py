@@ -29,6 +29,14 @@ _TIER_LABELS = {
 }
 _TIER_ORDER = ["waiting", "idle", "busy"]
 
+def _mid_truncate(text: str, max_len: int = 35) -> str:
+    if len(text) <= max_len:
+        return text
+    keep_start = (max_len - 1) // 2
+    keep_end   = max_len - 1 - keep_start
+    return f"{text[:keep_start]}…{text[-keep_end:]}"
+
+
 def _shorten(path: str) -> str:
     home = str(Path.home())
     if path == home:
@@ -40,7 +48,7 @@ def _shorten(path: str) -> str:
 
 def _session_row(s: Session, tier_prefix: str = "") -> str:
     glyph   = pango(state_glyph(s.status), state_color(s.status))
-    title   = s.title or s.session_id[:8]
+    title   = _mid_truncate(s.title or s.session_id[:8])
     cwd_dim = pango(_shorten(s.cwd), COLOR_DIM)
     hint    = (f"waiting {rel_time(s.status_updated_at)}"
                if s.status == "waiting" else rel_time(s.updated_at))
