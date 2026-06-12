@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+"""
+ccmanager — Claude Code sessions widget for Waybar.
+
+Usage:
+  ccmanager bar    # Emit Waybar JSON (run as exec in waybar config)
+  ccmanager pick   # Open session picker (run as on-click)
+"""
+
+import sys
+import os
+
+# Allow running directly without installing (adds project root to path)
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
+
+
+def main() -> None:
+    if len(sys.argv) < 2 or sys.argv[1] not in ("bar", "pick"):
+        print(__doc__, file=sys.stderr)
+        sys.exit(1)
+
+    subcmd = sys.argv[1]
+
+    if subcmd == "bar":
+        from ccmanager.bar import run
+        run()
+    elif subcmd == "pick":
+        from ccmanager.picker import run
+        run()
+
+
+if __name__ == "__main__":
+    main()

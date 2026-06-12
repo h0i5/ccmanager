@@ -1,0 +1,83 @@
+/**
+ * ccmanager rofi theme — matches waybar palette.
+ * bg=#171720  border=#2a2a38  text=#d5d5e0  accent=#e55064  dim=#6c7086
+ */
+
+* {
+    background-color: transparent;
+    text-color:       #d5d5e0;
+    border-color:     #2a2a38;
+    font:             "JetBrains Mono Nerd Font Bold 12";
+}
+
+window {
+    background-color: #171720;
+    border:           1px;
+    border-color:     #2a2a38;
+    border-radius:    0px;
+    width:            720px;
+    padding:          0px;
+    location:         center;
+    anchor:           center;
+    x-offset:         0px;
+    y-offset:         0px;
+}
+
+mainbox {
+    background-color: #171720;
+    children:         [ inputbar, listview ];
+    spacing:          0px;
+    padding:          0px;
+}
+
+inputbar {
+    background-color: #171720;
+    border:           0px 0px 1px 0px;
+    border-color:     #2a2a38;
+    padding:          8px 12px;
+    spacing:          8px;
+    children:         [ prompt, entry ];
+}
+
+prompt {
+    background-color: transparent;
+    text-color:       #e55064;
+}
+
+entry {
+    background-color: transparent;
+    text-color:       #d5d5e0;
+    placeholder:      "filter…";
+    placeholder-color: #6c7086;
+}
+
+listview {
+    background-color: #171720;
+    lines:            8;
+    dynamic:          true;
+    fixed-height:     false;
+    scrollbar:        false;
+    spacing:          0px;
+    padding:          4px 0px;
+}
+
+element {
+    background-color: transparent;
+    text-color:       #d5d5e0;
+    padding:          7px 14px;
+    spacing:          0px;
+    border-radius:    0px;
+}
+
+element-text {
+    background-color: transparent;
+    text-color:       #d5d5e0;
+    highlight:        bold #e55064;
+}
+
+element.selected {
+    background-color: #1e1e2e;
+    text-color:       #d5d5e0;
+    border:           0px 0px 0px 2px;
+    border-color:     #e55064;
+}
