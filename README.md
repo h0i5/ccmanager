@@ -4,6 +4,9 @@ Claude Code sessions widget for Waybar. Shows a live count of running Claude
 Code CLI sessions; clicking opens a themed session picker to focus any session's
 terminal window.
 
+<img width="1571" height="894" alt="image" src="https://github.com/user-attachments/assets/52ebff7d-76a8-4b56-b7a8-d833f2153c95" />
+
+
 ## What it does
 
 - **Bar module**: displays a robot icon + session count. Color reflects the
