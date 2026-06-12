@@ -15,8 +15,8 @@ from pathlib import Path
 
 from .sessions import list_sessions, write_cache, rel_time
 from .glyphs import (
-    BAR_ICON,
-    COLOR_ACCENT,
+    CLAUDE_LOGO,
+    COLOR_CLAUDE,
     COLOR_TEXT,
     COLOR_DIM,
     pango,
@@ -55,7 +55,8 @@ def run() -> None:
         agg_class = "idle"
 
     # Bar text: colored icon + count
-    icon = pango(BAR_ICON, COLOR_ACCENT)
+    # Explicit font_family needed — GTK CSS font-family fallback is unreliable for PUA glyphs
+    icon = f"<span font_family='ClaudeLogo' color='{COLOR_CLAUDE}' rise='-2048'>{CLAUDE_LOGO}</span>"
     count_color = COLOR_TEXT if agg_class == "idle" else (
         "#e5a04b" if agg_class == "waiting" else "#50fa7b"
     )

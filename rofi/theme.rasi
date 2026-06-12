@@ -34,14 +34,16 @@ inputbar {
     background-color: #171720;
     border:           0px 0px 1px 0px;
     border-color:     #2a2a38;
-    padding:          8px 12px;
+    padding:          14px 12px 8px 12px;
     spacing:          8px;
     children:         [ prompt, entry ];
 }
 
 prompt {
     background-color: transparent;
-    text-color:       #e55064;
+    font:             "ClaudeLogo 10";
+    text-color:       #d97757;
+    vertical-align:   0.5;
 }
 
 entry {

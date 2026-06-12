@@ -17,17 +17,17 @@ import sys
 from pathlib import Path
 
 from .sessions import list_sessions, read_cache, Session, rel_time
-from .glyphs import COLOR_DIM, COLOR_TEXT, COLOR_ACCENT, pango, state_glyph, state_color
+from .glyphs import COLOR_DIM, COLOR_TEXT, COLOR_ACCENT, CLAUDE_LOGO, pango, state_glyph, state_color
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 ROFI_THEME = str(_PROJECT_ROOT / "rofi" / "theme.rasi")
 
 _TIER_LABELS = {
     "waiting": "needs you",
+    "busy":    "running",
     "idle":    "idle",
-    "busy":    "busy",
 }
-_TIER_ORDER = ["waiting", "idle", "busy"]
+_TIER_ORDER = ["waiting", "busy", "idle"]
 
 def _mid_truncate(text: str, max_len: int = 35) -> str:
     if len(text) <= max_len:
@@ -35,6 +35,7 @@ def _mid_truncate(text: str, max_len: int = 35) -> str:
     keep_start = (max_len - 1) // 2
     keep_end   = max_len - 1 - keep_start
     return f"{text[:keep_start]}…{text[-keep_end:]}"
+
 
 
 def _shorten(path: str) -> str:
@@ -46,14 +47,23 @@ def _shorten(path: str) -> str:
     return path
 
 
-def _session_row(s: Session, tier_prefix: str = "") -> str:
-    glyph   = pango(state_glyph(s.status), state_color(s.status))
-    title   = _mid_truncate(s.title or s.session_id[:8])
-    cwd_dim = pango(_shorten(s.cwd), COLOR_DIM)
-    hint    = (f"waiting {rel_time(s.status_updated_at)}"
-               if s.status == "waiting" else rel_time(s.updated_at))
+def _cwd_display(cwd: str) -> str:
+    """Basename of cwd, truncated. Home dir shown as ~."""
+    home = str(Path.home())
+    if cwd == home:
+        return "~"
+    return _mid_truncate(Path(cwd).name, 20)
+
+
+def _session_row(s: Session, col: str = "") -> str:
+    """col: fixed-width prefix string (tier label or spaces), len == _PREFIX_W."""
+    glyph    = pango(state_glyph(s.status), state_color(s.status))
+    title    = _mid_truncate(s.title or s.session_id[:8])
+    cwd_dim  = pango(_cwd_display(s.cwd), COLOR_DIM)
+    hint     = (f"waiting {rel_time(s.status_updated_at)}"
+                if s.status == "waiting" else rel_time(s.updated_at))
     hint_dim = pango(hint, COLOR_DIM)
-    prefix   = pango(f"{tier_prefix}  ", "#3a3a4e") if tier_prefix else ""
+    prefix   = pango(col, "#3a3a4e")
     display  = f"{prefix}{glyph}  {title}  {cwd_dim}  {hint_dim}"
 
     # Hidden meta searched by rofi but not shown
@@ -83,7 +93,7 @@ def run() -> None:
     # Group sessions by tier, preserving sorted order
     groups: dict[str, list[Session]] = {t: [] for t in _TIER_ORDER}
     for s in sessions:
-        groups.get(s.status, groups["busy"]).append(s)
+        groups.get(s.status, groups["idle"]).append(s)
 
     # Build flat row list + index map: row_idx → Session | None (None = header)
     rows: list[str] = []
@@ -94,11 +104,9 @@ def run() -> None:
         if not tier_sessions:
             continue
         label = _TIER_LABELS.get(tier, tier)
-        for i, s in enumerate(tier_sessions):
-            # First row in each tier carries a dim tier label as prefix
-            prefix = label if i == 0 else ""
+        for s in tier_sessions:
             index_map[len(rows)] = s
-            rows.append(_session_row(s, tier_prefix=prefix))
+            rows.append(_session_row(s, col=f"{label}  "))
 
     idx = _show_rofi(rows, index_map)
     if idx is None:
@@ -121,7 +129,7 @@ def _show_rofi(rows: list[str], index_map: dict) -> int | None:
         "-i",
         "-markup-rows",
         "-format", "i",
-        "-p", "CC",
+        "-p", CLAUDE_LOGO,
         "-theme", ROFI_THEME,
     ]
 

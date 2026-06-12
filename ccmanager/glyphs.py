@@ -10,8 +10,9 @@ Codepoints chosen:
   GLYPH_IDLE U+0F10C  nf-fa-circle-o           bytes: ef 84 8c
 """
 
-# Bar icon: nf-md-robot  U+F06D2
-BAR_ICON = b"\xf3\xb0\x9b\x92".decode("utf-8")
+# Claude sunburst logomark at U+E900 in ClaudeLogo font (assets/ClaudeLogo.ttf)
+CLAUDE_LOGO  = b"\xee\xa4\x80".decode("utf-8")
+COLOR_CLAUDE = "#d97757"  # Claude orange
 
 # State glyphs
 GLYPH_BUSY    = b"\xef\x83\xa7".decode("utf-8")  # nf-fa-bolt    U+F0E7

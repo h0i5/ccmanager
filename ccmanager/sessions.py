@@ -342,6 +342,8 @@ def list_sessions() -> list[Session]:
             continue
 
         status = data.get("status", "idle")
+        if status not in ("idle", "busy", "waiting"):
+            status = "idle"
         cwd = data.get("cwd", "")
         name = data.get("name", "")
         session_id = data.get("sessionId", "")
@@ -380,7 +382,7 @@ def list_sessions() -> list[Session]:
     # Tier: waiting (needs you) → idle (free) → busy (working)
     # Within waiting: oldest wait first (anti-starvation).
     # Within idle/busy: most-recently-active first.
-    TIER = {"waiting": 0, "idle": 1, "busy": 2}
+    TIER = {"waiting": 0, "busy": 1, "idle": 2}
 
     def _rank(s: Session) -> tuple:
         tier = TIER.get(s.status, 3)
