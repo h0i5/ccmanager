@@ -15,7 +15,7 @@ window {
     border:           1px;
     border-color:     #2a2a38;
     border-radius:    0px;
-    width:            720px;
+    width:            74ch;   /* = ROW_CHARS (picker.py) + element padding */
     padding:          0px;
     location:         center;
     anchor:           center;

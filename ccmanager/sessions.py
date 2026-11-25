@@ -21,9 +21,22 @@ from pathlib import Path
 from typing import Optional
 
 
-CLAUDE_DIR = Path.home() / ".claude"
-SESSIONS_DIR = CLAUDE_DIR / "sessions"
-PROJECTS_DIR = CLAUDE_DIR / "projects"
+# ponytail: any ~/.claude* dir with a sessions/ subdir counts as a config
+# (~/.claude, ~/.claude-iamai, ...). Add CLAUDE_CONFIG_DIR support if a config lives elsewhere.
+def _config_dirs() -> list[Path]:
+    seen: set[Path] = set()
+    out: list[Path] = []
+    for d in sorted(Path.home().glob(".claude*/sessions")):
+        real = d.resolve()
+        if d.is_dir() and real not in seen:   # skip sessions/ symlinked to another config
+            seen.add(real)
+            out.append(d.parent)
+    return out
+
+
+def config_label(cfg: Path) -> str:
+    """~/.claude → 'default', ~/.claude-iamai → 'iamai'."""
+    return cfg.name.removeprefix(".claude").lstrip("-_.") or "default"
 _CACHE_PATH = Path("/tmp/ccmanager-sessions.json")
 _CACHE_MAX_AGE = 10  # seconds — bar polls every 2s so cache is usually <2s old
 
@@ -59,6 +72,7 @@ class Session:
     started_at: int          # epoch ms — session start
     git_repo: str            # basename of git root, or ""
     context_paths: list[str] = field(default_factory=list)  # @-referenced dirs
+    config: str = "default"  # which ~/.claude* config dir the session belongs to
 
 
 # ── /proc helpers ─────────────────────────────────────────────────────────────
@@ -194,11 +208,11 @@ def _context_paths(transcript: Path, cwd: str) -> list[str]:
 
 # ── Title resolution ──────────────────────────────────────────────────────────
 
-def _resolve_title(session_id: str, cwd: str, name: str) -> str:
+def _resolve_title(transcript: Optional[Path], session_id: str, cwd: str, name: str) -> str:
     """
     Best human-readable title: ai-title → session name → cwd/uuid fallback.
     """
-    matches = list(PROJECTS_DIR.glob(f"*/{session_id}.jsonl"))
+    matches = [transcript] if transcript else []
     if matches:
         try:
             ai_title = _scan_ai_title(matches[0])
@@ -273,7 +287,7 @@ def _session_to_dict(s: Session) -> dict:
         "version": s.version, "address": s.address, "workspace": s.workspace,
         "status_updated_at": s.status_updated_at, "updated_at": s.updated_at,
         "started_at": s.started_at, "git_repo": s.git_repo,
-        "context_paths": s.context_paths,
+        "context_paths": s.context_paths, "config": s.config,
     }
 
 
@@ -287,6 +301,7 @@ def _session_from_dict(d: dict) -> Session:
         started_at=d.get("started_at", d["updated_at"]),
         git_repo=d.get("git_repo", ""),
         context_paths=d.get("context_paths", []),
+        config=d.get("config", "default"),
     )
 
 
@@ -317,13 +332,11 @@ def list_sessions() -> list[Session]:
     title, git repo, context paths, and window address.
     Sorted: busy → waiting → idle, most-recent first within each group.
     """
-    if not SESSIONS_DIR.exists():
-        return []
-
     clients = _hyprctl_clients()
     sessions: list[Session] = []
 
-    for f in SESSIONS_DIR.glob("*.json"):
+    session_files = [(cfg, f) for cfg in _config_dirs() for f in (cfg / "sessions").glob("*.json")]
+    for cfg, f in session_files:
         try:
             pid = int(f.stem)
         except ValueError:
@@ -352,11 +365,10 @@ def list_sessions() -> list[Session]:
         updated_at = data.get("updatedAt", status_updated_at)
         started_at = data.get("startedAt", status_updated_at)
 
-        title = _resolve_title(session_id, cwd, name)
+        transcript = next((cfg / "projects").glob(f"*/{session_id}.jsonl"), None)
+        title = _resolve_title(transcript, session_id, cwd, name)
         repo = _git_repo(cwd)
-
-        transcript_matches = list(PROJECTS_DIR.glob(f"*/{session_id}.jsonl"))
-        ctx_paths = _context_paths(transcript_matches[0], cwd) if transcript_matches else []
+        ctx_paths = _context_paths(transcript, cwd) if transcript else []
 
         client = _find_window(pid, clients)
         address = client["address"] if client else None
@@ -377,6 +389,7 @@ def list_sessions() -> list[Session]:
             started_at=started_at,
             git_repo=repo,
             context_paths=ctx_paths,
+            config=config_label(cfg),
         ))
 
     # Tier: waiting (needs you) → idle (free) → busy (working)

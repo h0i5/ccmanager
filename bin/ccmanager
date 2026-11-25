@@ -3,8 +3,9 @@
 ccmanager — Claude Code sessions widget for Waybar.
 
 Usage:
-  ccmanager bar    # Emit Waybar JSON (run as exec in waybar config)
-  ccmanager pick   # Open session picker (run as on-click)
+  ccmanager bar           # Emit Waybar JSON (run as exec in waybar config)
+  ccmanager pick          # Open session picker (run as on-click)
+  ccmanager pick --demo   # Open picker with sample sessions (screenshots/testing)
 """
 
 import sys
@@ -28,7 +29,7 @@ def main() -> None:
         run()
     elif subcmd == "pick":
         from ccmanager.picker import run
-        run()
+        run(demo="--demo" in sys.argv[2:])
 
 
 if __name__ == "__main__":
